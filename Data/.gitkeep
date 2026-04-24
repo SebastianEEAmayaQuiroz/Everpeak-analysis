@@ -21,4 +21,4 @@ El notebook principal carga automáticamente el dataset desde la ruta `/datasets
 ```python
 df = pd.read_csv('/datasets/everpeak_retail.csv')
 
-#⚠️ Nota: Este archivo no se incluye directamente en el repositorio por razones de tamaño o políticas del curso. Para reproducir el análisis, asegúrate de tener el archivo en la ruta especificada o ajusta la ruta en el notebook.
+#⚠️ Nota: Este archivo no se incluye directamente en el repositorio por razones de tamaño o políticas del curso.
