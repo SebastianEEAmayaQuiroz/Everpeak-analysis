@@ -1,1 +1,26 @@
+# Visualizaciones del proyecto EverPeak Analysis
 
+Esta carpeta está destinada a contener los gráficos y visualizaciones generados durante el análisis exploratorio de datos (EDA).
+
+## Gráficos generados en el notebook
+
+El notebook principal (`notebooks/everpeak_analysis.ipynb`) produce las siguientes visualizaciones:
+
+### 1. Distribución de Precios
+- **Tipo**: Histograma
+- **Columnas**: `price`
+- **Propósito**: Visualizar cómo se distribuyen los precios de los productos y detectar posibles outliers.
+- **Rango ajustado**: 0 - 1000 USD
+- **Bins**: 10 rangos
+
+### 2. Boxplot de Gastos por Categoría
+- **Tipo**: Boxplot (diagrama de caja)
+- **Columnas**: `order_value`
+- **Categorías**: Fashion y Sports
+- **Propósito**: Comparar la mediana, el rango intercuartil y los outliers del gasto entre ambas categorías.
+
+### 3. Distribución de Edades de Clientes
+- **Tipo**: Histograma
+- **Columna**: `customer_age`
+- **Propósito**: Identificar el rango etario predominante para segmentar campañas de marketing.
+- **Bins**: 10 rangos
