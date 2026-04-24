@@ -3,7 +3,7 @@ Análisis completo de datos EverPeak Retail - Limpieza, EDA, detección de outli
 #
 # EverPeak Retail Analysis – 
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/SebastianEEAmayaQuiroz/everpeak-analysis/blob/main/notebooks/everpeak_analysis.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1xxxGSn0xRIrC2aJROdtWJoKJIPe-Ciz1?usp=sharing)
 
 ## 📊 Descripción del Proyecto
 
