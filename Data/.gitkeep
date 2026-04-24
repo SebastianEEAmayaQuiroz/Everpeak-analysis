@@ -1,1 +1,24 @@
+# Datos del proyecto EverPeak Analysis
 
+Este proyecto utiliza el dataset `everpeak_retail.csv`, que forma parte de los recursos del bootcamp.
+
+## Descripción
+El dataset contiene 2,000 órdenes de clientes con valores faltantes, sentinels, outliers y problemas de calidad diseñados para simular datos reales del retail.
+
+## Variables principales
+- `order_id`: Identificador único del pedido
+- `customer_age`: Edad del cliente
+- `price`: Precio unitario del producto
+- `quantity`: Cantidad de unidades compradas
+- `order_value`: Valor total del pedido (price × quantity)
+- `payment_method`: Método de pago utilizado
+- `product_category`: Categoría del producto
+- `city`: Ciudad del cliente
+- `state`: Estado del cliente
+
+## Carga del dataset
+El notebook principal carga automáticamente el dataset desde la ruta `/datasets/everpeak_retail.csv` usando:
+```python
+df = pd.read_csv('/datasets/everpeak_retail.csv')
+
+#⚠️ Nota: Este archivo no se incluye directamente en el repositorio por razones de tamaño o políticas del curso. Para reproducir el análisis, asegúrate de tener el archivo en la ruta especificada o ajusta la ruta en el notebook.
