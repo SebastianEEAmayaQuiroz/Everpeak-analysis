@@ -1,1 +1,155 @@
+"""
+Módulo de limpieza de datos para EverPeak Retail Analysis
+Author: Sebastián Amaya
+- Pipeline de limpieza
 
+Este módulo contiene todas las funciones necesarias para:
+- Reemplazar valores centinela (sentinels) por NaN
+- Convertir columnas a tipo numérico
+- Rellenar valores ausentes
+- Limpiar columnas de texto
+- Pipeline orquestador completo
+"""
+
+import pandas as pd
+import numpy as np
+
+
+def convertir_columnas_numericas(df, columnas):
+    """
+    Convierte columnas específicas a tipo numérico.
+    Los valores no convertibles se transforman en NaN.
+    
+    Parameters:
+    -----------
+    df : pandas.DataFrame
+        DataFrame a modificar
+    columnas : list
+        Lista con nombres de columnas a convertir
+    
+    Returns:
+    --------
+    pandas.DataFrame
+        DataFrame con columnas convertidas a numérico
+    """
+    for col in columnas:
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+    return df
+
+
+def reemplazar_sentinels(df, sentinels, numeric_cols):
+    """
+    Reemplaza valores centinela (sentinels) por pd.NA en columnas numéricas.
+    
+    Parameters:
+    -----------
+    df : pandas.DataFrame
+        DataFrame a modificar
+    sentinels : list
+        Lista de valores a considerar como centinela
+    numeric_cols : list
+        Lista de columnas donde aplicar el reemplazo
+    
+    Returns:
+    --------
+    pandas.DataFrame
+        DataFrame con sentinels reemplazados por NA
+    """
+    for col in numeric_cols:
+        df[col] = df[col].replace(sentinels, pd.NA)
+    return df
+
+
+def rellenar_ausentes(df, cols_fill):
+    """
+    Convierte columnas a numérico y rellena valores ausentes con la media.
+    
+    Parameters:
+    -----------
+    df : pandas.DataFrame
+        DataFrame a modificar
+    cols_fill : list
+        Lista de columnas a rellenar
+    
+    Returns:
+    --------
+    pandas.DataFrame
+        DataFrame con valores ausentes imputados
+    """
+    for col in cols_fill:
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+        df[col].fillna(df[col].mean(), inplace=True)
+    return df
+
+
+def step_strip_text(df):
+    """
+    Elimina espacios en blanco al inicio y final de columnas de texto.
+    
+    Parameters:
+    -----------
+    df : pandas.DataFrame
+        DataFrame a modificar
+    
+    Returns:
+    --------
+    pandas.DataFrame
+        DataFrame con texto limpio
+    """
+    columnas = ["product_category", "city", "state"]
+    for col in columnas:
+        if col in df.columns:
+            df[col] = df[col].str.strip()
+    return df
+
+
+def limpiar_df(df):
+    """
+    Pipeline principal de limpieza.
+    Orquesta todas las funciones de limpieza en el orden correcto.
+    
+    Parámetros configurados para el dataset EverPeak:
+    - Sentinels: -999, 999, 0, -1
+    - Columnas numéricas: customer_age, price, quantity, order_value
+    
+    Parameters:
+    -----------
+    df : pandas.DataFrame
+        DataFrame original a limpiar
+    
+    Returns:
+    --------
+    pandas.DataFrame
+        DataFrame completamente limpio
+    """
+    # Definir parámetros de limpieza
+    valores_erroneos = [-999, 999, 0, -1]
+    columnas_numericas = ["customer_age", "price", "quantity", "order_value"]
+    
+    # Aplicar transformaciones en orden
+    df = reemplazar_sentinels(df, valores_erroneos, columnas_numericas)
+    df = convertir_columnas_numericas(df, columnas_numericas)
+    df = rellenar_ausentes(df, ["customer_age", "price"])
+    df = step_strip_text(df)
+    
+    return df
+
+
+# Ejemplo de uso directo (solo se ejecuta si corremos este script directamente)
+if __name__ == "__main__":
+    # Cargar datos
+    df = pd.read_csv('/datasets/everpeak_retail.csv')
+    
+    print("=== Ejecutando pipeline de limpieza ===")
+    print(f"Datos originales: {df.shape}")
+    
+    # Aplicar limpieza
+    df_clean = limpiar_df(df)
+    
+    print(f"Datos después de limpieza: {df_clean.shape}")
+    print("\nInformación del dataset limpio:")
+    print(df_clean.info())
+    
+    # Guardar resultado (opcional)
+    # df_clean.to_csv('data/everpeak_clean.csv', index=False)
+    # print("\nDataset limpio guardado en data/everpeak_clean.csv")
