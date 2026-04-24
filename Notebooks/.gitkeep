@@ -1,1 +1,235 @@
+# %% [markdown]
+# # EverPeak Retail Analysis 
+# 
+# ## Análisis completo de datos: Limpieza, EDA, Outliers y Segmentación
+#
+# %% [markdown]
+# ### 1. Importar librerías y cargar datos
 
+# %%
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Cargar datos
+df = pd.read_csv('/datasets/everpeak_retail.csv')
+print("Dataset cargado correctamente")
+print(f"Shape: {df.shape}")
+print(f"Columnas: {df.columns.tolist()}")
+
+# %% [markdown]
+# ### 2. Funciones de limpieza
+
+# %%
+def convertir_columnas_numericas(df, columnas):
+    for col in columnas:
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+    return df
+
+def reemplazar_sentinels(df, sentinels, numeric_cols):
+    for col in numeric_cols:
+        df[col] = df[col].replace(sentinels, pd.NA)
+    return df
+
+def rellenar_ausentes(df, cols_fill):
+    for col in cols_fill:
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+        df[col].fillna(df[col].mean(), inplace=True)
+    return df
+
+def step_strip_text(df):
+    columnas = ["product_category", "city", "state"]
+    for col in columnas:
+        df[col] = df[col].str.strip()
+    return df
+
+# %% [markdown]
+# ### 3. Pipeline de limpieza
+
+# %%
+def limpiar_df(df):
+    # Definir valores erróneos
+    valores_erroneos = [-999, 999, 0, -1]
+    columnas_numericas = ["customer_age", "price", "quantity", "order_value"]
+    
+    # Aplicar transformaciones
+    df = reemplazar_sentinels(df, valores_erroneos, columnas_numericas)
+    df = convertir_columnas_numericas(df, columnas_numericas)
+    df = rellenar_ausentes(df, ["customer_age", "price"])
+    df = step_strip_text(df)
+    
+    return df
+
+# Aplicar pipeline
+df_clean = limpiar_df(df.copy())
+print("Pipeline de limpieza aplicado correctamente")
+
+# %% [markdown]
+# ### 4. Análisis Exploratorio (EDA)
+
+# %%
+# Ver información del dataset limpio
+print("Información del dataset limpio:")
+df_clean.info()
+
+# %%
+# Estadísticas descriptivas variables numéricas
+columnas_num = ['order_value', 'customer_age', 'price', 'quantity']
+print("Estadísticas descriptivas:")
+print(df_clean[columnas_num].describe())
+
+# %%
+# Análisis de variables categóricas
+columnas_cat = ['product_category', 'payment_method', 'city', 'state']
+
+for col in columnas_cat:
+    print(f"\n--- {col} ---")
+    print("Frecuencia absoluta:")
+    print(df_clean[col].value_counts())
+    print("\nFrecuencia relativa:")
+    print(df_clean[col].value_counts(normalize=True))
+
+# %% [markdown]
+# ### 5. Detección de Outliers
+
+# %%
+# Método IQR para order_value
+Q1 = df_clean["order_value"].quantile(0.25)
+Q3 = df_clean["order_value"].quantile(0.75)
+IQR = Q3 - Q1
+limite_inferior = Q1 - 1.5 * IQR
+limite_superior = Q3 + 1.5 * IQR
+
+print(f"Límite inferior (IQR): {limite_inferior:.2f}")
+print(f"Límite superior (IQR): {limite_superior:.2f}")
+
+outliers_iqr = df_clean[(df_clean["order_value"] < limite_inferior) | 
+                         (df_clean["order_value"] > limite_superior)]
+print(f"\nOutliers detectados con IQR: {len(outliers_iqr)}")
+
+# %%
+# Método Z-score para order_value
+mean = df_clean["order_value"].mean()
+std = df_clean["order_value"].std()
+df_clean['z'] = (df_clean["order_value"] - mean) / std
+
+outliers_z = df_clean[df_clean['z'].abs() > 3]
+print(f"Outliers detectados con Z-score: {len(outliers_z)}")
+
+# %% [markdown]
+# ### 6. Visualizaciones
+
+# %%
+# Histograma de precios
+plt.figure(figsize=(10, 6))
+counts, bin_edges, _ = plt.hist(df_clean['price'], bins=10, range=(0, 1000), 
+                                 color='skyblue', edgecolor='black')
+plt.xticks(bin_edges)
+plt.xlabel("Precio")
+plt.ylabel("Cantidad")
+plt.title("Distribución de Precios")
+plt.show()
+
+# %%
+# Boxplot de gastos por categoría
+fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+
+# Fashion
+df_fashion = df_clean[df_clean["product_category"] == "Fashion"]
+sns.boxplot(x=df_fashion["order_value"], color='skyblue', ax=axes[0])
+axes[0].set_xlabel("Gasto del Cliente")
+axes[0].set_title("Boxplot de Gastos - Categoría Fashion")
+
+# Sports
+df_sports = df_clean[df_clean["product_category"] == "Sports"]
+sns.boxplot(x=df_sports["order_value"], color='skyblue', ax=axes[1])
+axes[1].set_xlabel("Gasto del Cliente")
+axes[1].set_title("Boxplot de Gastos - Categoría Sports")
+
+plt.tight_layout()
+plt.show()
+
+# %% [markdown]
+# ### 7. Segmentación de Clientes
+
+# %%
+# Segmentación con np.where()
+df_clean["volume_segment"] = np.where(df_clean["quantity"] > 22, 
+                                       "High Volume", "Low Volume")
+print("Segmentación por volumen:")
+print(df_clean['volume_segment'].value_counts())
+
+# %%
+# Segmentación avanzada con función personalizada
+def classify_volume(row):
+    age = row['customer_age']
+    qty = row['quantity']
+    
+    if pd.isna(age) or pd.isna(qty):
+        return "Error en Datos"
+    
+    if qty > 22:
+        if age > 55:
+            return "Sr. High Volume"
+        else:
+            return "Jr. High Volume"
+    elif qty <= 22:
+        if age > 55:
+            return "Sr. Low Volume"
+        else:
+            return "Jr. Low Volume"
+
+df_clean["age_volume_segment"] = df_clean.apply(classify_volume, axis=1)
+print("\nSegmentación por edad y volumen:")
+print(df_clean['age_volume_segment'].value_counts())
+
+# %%
+# Segmentación por método de pago
+def classify_payment(row):
+    card = row['payment_method']
+    qty = row['quantity']
+    
+    if pd.isna(card) or pd.isna(qty):
+        return "Error en Datos"
+    
+    if qty > 22:
+        if card in ['credit_card', 'debit_card']:
+            return "card_high_volume"
+        else:
+            return "no_card_high_volume"
+    elif qty <= 22:
+        if card in ['credit_card', 'debit_card']:
+            return "card_low_volume"
+        else:
+            return "no_card_low_volume"
+
+df_clean['payment_segment'] = df_clean.apply(classify_payment, axis=1)
+print("\nSegmentación por método de pago y volumen:")
+print(df_clean['payment_segment'].value_counts())
+
+# %% [markdown]
+# ### 8. Conclusiones finales
+
+# %%
+print("=" * 50)
+print("CONCLUSIONES DEL ANÁLISIS")
+print("=" * 50)
+
+print("\n1. Calidad de Datos:")
+print(f"   - Dataset original: {df.shape}")
+print(f"   - Dataset después de limpieza: {df_clean.shape}")
+print(f"   - Columnas numéricas convertidas correctamente")
+
+print("\n2. Outliers detectados:")
+print(f"   - IQR: {len(outliers_iqr)} outliers en order_value")
+print(f"   - Z-score: {len(outliers_z)} outliers en order_value")
+
+print("\n3. Segmentación:")
+print(f"   - Clientes High Volume: {(df_clean['volume_segment'] == 'High Volume').sum()}")
+print(f"   - Clientes Low Volume: {(df_clean['volume_segment'] == 'Low Volume').sum()}")
+
+print("\n4. Recomendaciones:")
+print("   - Considerar usar mediana para variables con outliers")
+print("   - Enfocar campañas según segmentos identificados")
+print("   - Validar datos de payment_method antes de análisis futuros")
