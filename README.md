@@ -28,9 +28,13 @@ El dataset `everpeak_retail` simula datos reales de retail con:
 everpeak-analysis/
 
 └── Notebooks/ everpeak_analysis.ipynb
+
 └── Data/ everpeak_clean.csv
+
 └── Scripts/ pipeline_clean.py
+
 └── Images/ (gráficos generados)
+
 └── README.md
 
 
