@@ -1,7 +1,3 @@
-# Visualizaciones del proyecto EverPeak Analysis
-
-Esta carpeta está destinada a contener los gráficos y visualizaciones generados durante el análisis exploratorio de datos (EDA).
-
 ## Gráficos generados en el notebook
 
 El notebook principal (`notebooks/everpeak_analysis.ipynb`) produce las siguientes visualizaciones:
